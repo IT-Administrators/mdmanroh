@@ -1,26 +1,61 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+import { createNewReferenceLink } from "./commands/createreflink";
+import { extractReferenceLabels } from "./extractreflabel";
+import { ReferenceLinkCodeActionProvider} from "./actionprovider/reflinkprovider";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	// Create code action provider.
+	context.subscriptions.push(
+		vscode.languages.registerCodeActionsProvider("markdown", new ReferenceLinkCodeActionProvider(),{
+			providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
+		}
+	)
+	);
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "mdmanroh" is now active!');
+	context.subscriptions.push(
+		vscode.commands.registerCommand("refLinks.pickLabel", async (document: vscode.TextDocument, position: vscode.Position) => {
+			// Sort labels
+			const labels = extractReferenceLabels(document).sort((a, b) => a.label.localeCompare(b.label));
+			// Catch no labels exist
+			if (labels.length === 0) {
+				vscode.window.showInformationMessage("No reference labels found in this document.");
+				return;
+			}
+			// Get picked item form quickpick.
+			const picked = await vscode.window.showQuickPick( 
+				labels.map(r => ({ label: r.label, description: r.url })), 
+				{ placeHolder: "Choose a reference label" } 
+			);
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('mdmanroh.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from mdman!');
-	});
+			if (!picked) {
+				return;
+			}
+			// Get active editor
+			const editor = vscode.window.activeTextEditor;
+			if (!editor) {
+				return;
+			}
+			// Check if text is selected
+			const selection = editor.selection; 
+			const hasSelection = !selection.isEmpty;
 
-	context.subscriptions.push(disposable);
+			editor.edit(edit => {
+				// If there is text selected it will be replaced
+				if (hasSelection) {  
+					edit.replace(selection, picked.label); 
+				} else { 
+					// Insert at cursor 
+					edit.insert(position, picked.label); 
+				}
+			});
+		})
+	);
+
+	// Register the "create new reference" command 
+	context.subscriptions.push( 
+	vscode.commands.registerCommand("mdmanroh.createNewReference", createNewReferenceLink)
+	);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}
+

@@ -1,15 +1,78 @@
 import * as assert from 'assert';
+import { extractReferenceLabels } from '../extractreflabel';
 
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
-import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
+// Import the function you want to test
+// Adjust the path to match your project structure
 
-suite('Extension Test Suite', () => {
-	vscode.window.showInformationMessage('Start all tests.');
+// Mock a minimal TextDocument-like object
+function mockDocument(text:string) {
+  return {
+    getText() {
+      return text;
+    }
+  };
+}
 
-	test('Sample test', () => {
-		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
-		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
-	});
-});
+//
+// ────────────────────────────────────────────────────────────────
+//   TESTS FOR extractReferenceLabels
+// ────────────────────────────────────────────────────────────────
+//
+
+(function testExtractsSingleReference() {
+  const doc = mockDocument("[github]: https://github.com");
+
+  const result = extractReferenceLabels(doc);
+
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].label, "github");
+  assert.strictEqual(result[0].url, "https://github.com");
+
+  console.log("testExtractsSingleReference passed");
+})();
+
+(function testExtractsMultipleReferences() {
+  const doc = mockDocument(`
+    [github]: https://github.com
+    [docs]: https://example.com/docs
+    [api]: https://api.example.com
+  `);
+
+  const result = extractReferenceLabels(doc);
+
+  assert.strictEqual(result.length, 3);
+
+  const labels = result.map(r => r.label);
+  assert.deepStrictEqual(labels.sort(), ["api", "docs", "github"]);
+
+  console.log("testExtractsMultipleReferences passed");
+})();
+
+(function testIgnoresInlineLinks() {
+  const doc = mockDocument(`
+    This is an inline link [Google](https://google.com)
+    [ref]: https://example.com
+  `);
+
+  const result = extractReferenceLabels(doc);
+
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].label, "ref");
+
+  console.log("testIgnoresInlineLinks passed");
+})();
+
+(function testHandlesWhitespace() {
+  const doc = mockDocument(`
+    [ spaced ]:   https://example.com/space
+  `);
+
+  const result = extractReferenceLabels(doc);
+
+  assert.strictEqual(result.length, 1);
+  assert.strictEqual(result[0].label, " spaced ");
+  assert.strictEqual(result[0].url, "https://example.com/space");
+
+  console.log("testHandlesWhitespace passed");
+})();
+

@@ -9,13 +9,22 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": ["onLanguage:markdown"],
   "main": "./dist/extension.js",
   "contributes": {
+    "languages": [
+      { "id": "markdown", "extensions": [".md"] }
+    ],
+    "codeActions": [
+      {
+        "language": "markdown",
+        "kind": "quickfix"
+      }
+    ],
     "commands": [
       {
-        "command": "mdmanroh.helloWorld",
-        "title": "Hello World"
+        "command": "mdmanroh.createNewReference",
+        "title": "MDMan: Create New Reference Link"
       }
     ]
   },
