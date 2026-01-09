@@ -1,7 +1,7 @@
 /** Extract all labels from the specified document. */
-export function extractReferenceLabels(document: { getText(): string } ): { label: string; url: string }[] {
+export function extractReferenceLabels(document: { getText(): string }): { label: string; url: string }[] {
   const text = document.getText();
-  const regex = /^\[([^\]]+)\]:\s*(.+)$/gm;
+  const regex = /^\s*\[([^\]]+)\]:\s*(.+)$/gm;
   const items: { label: string; url: string }[] = [];
   let match;
 
