@@ -1,10 +1,18 @@
 {
   "name": "mdmanroh",
   "displayName": "MDMan",
-  "description": "",
-  "version": "0.0.1",
+  "description": "Easy and automate boring markdown stuff like link creation.",
+  "readme": "./README.md",
+  "publisher": "IT-Administrators",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IT-Administrators/mdmanroh"
+  },
+  "homepage": "https://github.com/IT-Administrators/mdmanroh",
+  "icon": "img/mdmanroh-icon.png",
+  "version": "0.0.3",
   "engines": {
-    "vscode": "^1.107.0"
+    "vscode": "^1.105.0"
   },
   "categories": [
     "Other"
