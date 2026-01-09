@@ -11,7 +11,7 @@ jobs:
 
     # Only run if:
     # 1. Test workflow succeeded
-    # 2. The triggering run was for a version tag like v1.2.3
+    # 2. The triggering run was for a tag starting with "v"
     if: >
       ${{
         github.event.workflow_run.conclusion == 'success' &&
@@ -19,6 +19,12 @@ jobs:
       }}
 
     steps:
+      - name: Debug event payload
+        run: |
+          echo "ref: ${{ github.ref }}"
+          echo "head_branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "head_sha: ${{ github.event.workflow_run.head_sha }}"
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -36,12 +42,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Extract version tag
+      - name: Extract and validate version tag
         id: version
         run: |
           RAW_TAG="${{ github.event.workflow_run.head_branch }}"
+          echo "Raw tag: $RAW_TAG"
+
+          # Validate semantic version tag: v1.2.3
+          if [[ ! "$RAW_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag is not a valid version tag. Exiting."
+            exit 1
+          fi
+
           TAG="${RAW_TAG#v}"
           echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "Using version: $TAG"
 
       - name: Update package.json version
         run: npm version "${{ steps.version.outputs.TAG }}" --no-git-tag-version
