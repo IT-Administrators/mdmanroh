@@ -1,0 +1,71 @@
+name: Publish VS Code Extension
+
+on:
+  workflow_run:
+    workflows: ['Test Extension']
+    types: [completed]
+
+jobs:
+  on-success:
+    runs-on: ubuntu-latest
+    # Check if triggering workflow was successfull and there was a tag push.
+    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.ref, 'refs/tags/') }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Extract version tag
+        id: version
+        run: |
+          RAW_TAG="${{ github.event.workflow_run.head_branch }}"
+          echo "Raw tag: $RAW_TAG"
+
+          # Check if this is a version tag like v1.2.3
+          if [[ ! "$RAW_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Not a version tag. Skipping publish."
+            exit 1
+          fi
+
+          TAG="${RAW_TAG#v}"
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "Using version: $TAG"
+
+      - name: Update package.json version
+        run: npm version "${{ steps.version.outputs.TAG }}" --no-git-tag-version
+
+      - name: Commit updated package.json
+        run: |
+          # Configure user
+          git config --global user.name "actions[bot].github"
+          git config --global user.email "actions[bot]@github.com"
+          # Stage any file changes to be committed. These files were changed by "nmp version" command.
+          git add package.json package-lock.json
+          git commit -m "CI: update version to ${{ steps.version.outputs.TAG }}"
+          # Push the commit back up to source GitHub repository.
+          git push
+
+      - name: Publish extension
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: vsce publish --pat "$VSCE_PAT"
+
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - run: echo 'The triggering workflow failed'
