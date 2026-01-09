@@ -1,7 +1,7 @@
 {
   "name": "mdmanroh",
   "displayName": "MDMan",
-  "description": "Easy and automate boring markdown stuff like link creation.",
+  "description": "Ease and automate boring markdown stuff like link creation.",
   "readme": "./README.md",
   "publisher": "IT-Administrators",
   "repository": {
@@ -33,6 +33,10 @@
       {
         "command": "mdmanroh.createNewReference",
         "title": "MDMan: Create New Reference Link"
+      },
+      {
+        "command": "mdmanroh.convertInlineToReference",
+        "title": "MDMan: Convert Inline Link to Reference Link"
       }
     ]
   },

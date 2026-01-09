@@ -1,7 +1,8 @@
 import * as vscode from "vscode";
 import { createNewReferenceLink } from "./commands/createreflink";
-import { extractReferenceLabels } from "./extractreflabel";
+import { extractReferenceLabels } from "./linklabelhandling";
 import { ReferenceLinkCodeActionProvider} from "./actionprovider/reflinkprovider";
+import { convertInlineLinkToReference } from "./commands/convertinlinelinktoref";
 
 export function activate(context: vscode.ExtensionContext) {
 	// Create code action provider.
@@ -55,6 +56,11 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push( 
 	vscode.commands.registerCommand("mdmanroh.createNewReference", createNewReferenceLink)
 	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand("mdmanroh.convertInlineToReference", convertInlineLinkToReference)
+	);
+
 }
 
 export function deactivate() {}

@@ -1,8 +1,6 @@
 import * as assert from 'assert';
-import { extractReferenceLabels } from '../extractreflabel';
-
-// Import the function you want to test
-// Adjust the path to match your project structure
+import { extractReferenceLabels } from '../linklabelhandling';
+import { convertInlineToReferenceCore } from '../commands/convertinlinelinktoref';
 
 // Mock a minimal TextDocument-like object
 function mockDocument(text:string) {
@@ -12,12 +10,6 @@ function mockDocument(text:string) {
     }
   };
 }
-
-//
-// ────────────────────────────────────────────────────────────────
-//   TESTS FOR extractReferenceLabels
-// ────────────────────────────────────────────────────────────────
-//
 
 (function testExtractsSingleReference() {
   const doc = mockDocument("[github]: https://github.com");
@@ -76,3 +68,18 @@ function mockDocument(text:string) {
   console.log("testHandlesWhitespace passed");
 })();
 
+(function testConvertInlineToReference() {
+  const link = {
+    text: "Google",
+    url: "https://google.com"
+  };
+
+  const label = "google";
+
+  const result = convertInlineToReferenceCore(link, label);
+
+  assert.strictEqual(result.replacement, "[Google][google]");
+  assert.strictEqual(result.reference, "[google]: https://google.com");
+
+  console.log("testConvertInlineToReference passed");
+})();
