@@ -1,7 +1,6 @@
 name: Test Extension
 
 on:
-  on:
   push:
     tags:
       - 'v*'
