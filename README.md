@@ -35,6 +35,9 @@ The following features are currently supported.
 - MDMan: Convert Inline Link to Reference Link
     - Lets you pick a inline link inside your document and changes it into a reference link, which is also appended at the end of the document.
 
+- MDMan: Insert Reference Link (CodeAction)
+    - Insert the chosen reference link at the current position or selection.
+
 ### Settings
 
 There are currently no settings configured.

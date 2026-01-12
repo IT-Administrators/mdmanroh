@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { extractInlineLinks } from "../linklabelhandling";
+import { extractInlineLinks, extractReferenceLabels } from "../linklabelhandling";
 import { InlineLink } from "../interfaces/links";
 
 /** Command to convert the selected inline link to reference link.
@@ -10,7 +10,6 @@ import { InlineLink } from "../interfaces/links";
  * [label]: url
  */
 export async function convertInlineLinkToReference() {
-  // Get currently active editor
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
@@ -18,15 +17,12 @@ export async function convertInlineLinkToReference() {
 
   const document = editor.document;
 
-  // Extract all inline links
   const links = extractInlineLinks(document);
-
   if (links.length === 0) {
     vscode.window.showInformationMessage("No inline links found in this document.");
     return;
   }
 
-  // Show QuickPick
   const picked = await vscode.window.showQuickPick(
     links.map(l => ({
       label: l.text,
@@ -42,27 +38,64 @@ export async function convertInlineLinkToReference() {
 
   const link = picked.link;
 
-  // Ask for a reference label
+  const existing = extractReferenceLabels(document);
+  const existingLabels = existing.map(l => l.label.toLowerCase());
+
   const label = await vscode.window.showInputBox({
     prompt: "Enter a reference label",
-    value: link.text.toLowerCase().replace(/\s+/g, "-")
+    value: link.text.toLowerCase().replace(/\s+/g, "-"),
+    validateInput: value => {
+      if (value.trim() === "") {
+        return "Label cannot be empty";
+      }
+      return null; // allow duplicates so QuickPick can run
+    }
   });
 
   if (!label) {
     return;
   }
 
-  // Use the pure core function
+  const normalized = label.trim().toLowerCase();
+
+  // Duplicate → show QuickPick of labels that CONTAIN the entered text
+  if (existingLabels.includes(normalized)) {
+    const matching = existing.filter(l =>
+      l.label.toLowerCase().includes(normalized)
+    );
+
+    const pickedExisting = await vscode.window.showQuickPick(
+      matching.map(l => ({
+        label: l.label,
+        description: l.url,
+        full: l
+      })),
+      { placeHolder: `Labels containing "${normalized}" already exist. Choose one:` }
+    );
+
+    if (!pickedExisting) {
+      return;
+    }
+
+    const chosen = pickedExisting.full;
+
+    await editor.edit(edit => {
+      edit.replace(link.range, `[${link.text}][${chosen.label}]`);
+    });
+
+    return;
+  }
+
+
+  // Normal case: create new reference
   const { replacement, reference } = convertInlineToReferenceCore(
     { text: link.text, url: link.url },
     label
   );
 
   await editor.edit(edit => {
-    // Replace inline link with reference-style link
     edit.replace(link.range, replacement);
 
-    // Append reference definition at end of document
     const end = new vscode.Position(document.lineCount, 0);
     edit.insert(end, `\n${reference}`);
   });

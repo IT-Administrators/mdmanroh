@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { extractReferenceLabels } from "../linklabelhandling";
 /** Create new reference linke command. */
 export async function createNewReferenceLink() {
   // Get current editor
@@ -9,11 +10,24 @@ export async function createNewReferenceLink() {
   // Get currently open document
   const document = editor.document;
 
+    // Collect existing labels 
+    const existingLabels = extractReferenceLabels(document).map( l => l.label.toLowerCase() );
+
   // Ask for label
-  const label = await vscode.window.showInputBox({
-    prompt: "Enter the reference label (e.g. github)",
-    validateInput: value => value.trim() === "" ? "Label cannot be empty" : null
+  const label = await vscode.window.showInputBox({ 
+    prompt: "Enter the reference label (e.g. github)", 
+    validateInput: value => { 
+      const trimmed = value.trim().toLowerCase(); 
+      if (trimmed === "") {
+        return "Label cannot be empty";
+      } 
+      if (existingLabels.includes(trimmed)) {
+        return `The label "${trimmed}" already exists`;
+      } 
+      return null; 
+    } 
   });
+  
   if (!label) {
     return;
   }
