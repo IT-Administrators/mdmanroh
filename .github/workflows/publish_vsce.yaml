@@ -67,7 +67,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json
           git commit -m "CI: update version to ${{ steps.version.outputs.TAG }}" || echo "No changes to commit"
-          git push
+          git push origin main
 
       - name: Publish extension
         env:
