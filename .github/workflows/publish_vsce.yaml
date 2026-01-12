@@ -7,13 +7,11 @@ on:
 
 jobs:
   publish:
-    permissions: 
-      contents: write
     runs-on: ubuntu-latest
 
-    # Only run if:
-    # 1. Test workflow succeeded
-    # 2. The triggering run was for a tag starting with "v"
+    permissions:
+      contents: write
+
     if: >
       ${{
         github.event.workflow_run.conclusion == 'success' &&
@@ -51,7 +49,6 @@ jobs:
           RAW_TAG="${{ github.event.workflow_run.head_branch }}"
           echo "Raw tag: $RAW_TAG"
 
-          # Validate semantic version tag: v1.2.3
           if [[ ! "$RAW_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Tag is not a valid version tag. Exiting."
             exit 1
@@ -66,8 +63,8 @@ jobs:
 
       - name: Commit updated package.json
         run: |
-          git config --global user.name "actions[bot]"
-          git config --global user.email "actions[bot]@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add package.json package-lock.json
           git commit -m "CI: update version to ${{ steps.version.outputs.TAG }}" || echo "No changes to commit"
           git push
