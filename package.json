@@ -37,6 +37,10 @@
       {
         "command": "mdmanroh.convertInlineToReference",
         "title": "MDMan: Convert Inline Link to Reference Link"
+      },
+      {
+        "command": "mdmanroh.pickLabel",
+        "title": "MDMan: Insert Reference Label"
       }
     ]
   },

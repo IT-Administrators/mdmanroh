@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { createNewReferenceLink } from "./commands/createreflink";
-import { extractReferenceLabels } from "./linklabelhandling";
 import { ReferenceLinkCodeActionProvider} from "./actionprovider/reflinkprovider";
 import { convertInlineLinkToReference } from "./commands/convertinlinelinktoref";
+import { pickReferenceLabel } from "./commands/insertlink";
 
 export function activate(context: vscode.ExtensionContext) {
 	// Create code action provider.
@@ -14,42 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand("refLinks.pickLabel", async (document: vscode.TextDocument, position: vscode.Position) => {
-			// Sort labels
-			const labels = extractReferenceLabels(document).sort((a, b) => a.label.localeCompare(b.label));
-			// Catch no labels exist
-			if (labels.length === 0) {
-				vscode.window.showInformationMessage("No reference labels found in this document.");
-				return;
-			}
-			// Get picked item form quickpick.
-			const picked = await vscode.window.showQuickPick( 
-				labels.map(r => ({ label: r.label, description: r.url })), 
-				{ placeHolder: "Choose a reference label" } 
-			);
-
-			if (!picked) {
-				return;
-			}
-			// Get active editor
-			const editor = vscode.window.activeTextEditor;
-			if (!editor) {
-				return;
-			}
-			// Check if text is selected
-			const selection = editor.selection; 
-			const hasSelection = !selection.isEmpty;
-
-			editor.edit(edit => {
-				// If there is text selected it will be replaced
-				if (hasSelection) {  
-					edit.replace(selection, picked.label); 
-				} else { 
-					// Insert at cursor 
-					edit.insert(position, picked.label); 
-				}
-			});
-		})
+		vscode.commands.registerCommand("refLinks.pickLabel", pickReferenceLabel)
 	);
 
 	// Register the "create new reference" command 
@@ -59,8 +24,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand("mdmanroh.convertInlineToReference", convertInlineLinkToReference)
-	);
-
+	); 
+	
+	context.subscriptions.push( vscode.commands.registerCommand("mdmanroh.pickLabel", pickReferenceLabel) );
 }
 
 export function deactivate() {}
