@@ -47,7 +47,7 @@ jobs:
       - name: Change package version
         shell: pwsh
         run: | 
-          $Patch = "./package.json"
+          $Path = "./package.json"
           $NewVersion = "${{ steps.get_tag.outputs.clean_tag }}"
 
           # Read and parse JSON
