@@ -10,18 +10,25 @@
   },
   "homepage": "https://github.com/IT-Administrators/mdmanroh",
   "icon": "img/mdmanroh-icon.png",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.107.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": ["onLanguage:markdown"],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "languages": [
-      { "id": "markdown", "extensions": [".md"] }
+      {
+        "id": "markdown",
+        "extensions": [
+          ".md"
+        ]
+      }
     ],
     "codeActions": [
       {
