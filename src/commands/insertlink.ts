@@ -20,6 +20,16 @@ export async function pickReferenceLabel(
         position = editor.selection.active;
     }
 
+    // Check if cursor is inside square brackets
+    const line = document.lineAt(position.line).text;
+    const cursorIndex = position.character;
+    const before = line.slice(0, cursorIndex);
+    const match = before.match(/\[([^\]]*)$/);
+    if (!match) {
+        vscode.window.showInformationMessage("The cursor must be inside square brackets to insert a reference label.");
+        return;
+    }
+
     // Sort labels
     const labels = extractReferenceLabels(document).sort((a, b) =>
         a.label.localeCompare(b.label)

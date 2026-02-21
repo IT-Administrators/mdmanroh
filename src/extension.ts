@@ -19,14 +19,16 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Register the "create new reference" command 
 	context.subscriptions.push( 
-	vscode.commands.registerCommand("mdmanroh.createNewReference", createNewReferenceLink)
+		vscode.commands.registerCommand("mdmanroh.createNewReference", createNewReferenceLink)
 	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand("mdmanroh.convertInlineToReference", convertInlineLinkToReference)
 	); 
 	
-	context.subscriptions.push( vscode.commands.registerCommand("mdmanroh.pickLabel", pickReferenceLabel) );
+	context.subscriptions.push(
+		vscode.commands.registerCommand("mdmanroh.pickLabel", pickReferenceLabel)
+	);
 }
 
 export function deactivate() {}
